@@ -1,0 +1,22 @@
+
+
+     Chorium Revision A - More tuned Chorium -
+
+        : Soundfont for SB Live!/Audigy Series (and also XMPlay)
+
+
+                                         Released on 3rd Nov'06, by openwrld
+
+
+ This is package of Chorium[ko:rjum] Revision A. There has been no sound sample 
+changes/additions, but there's been many parameter tunings. Some can hear the 
+changes, some may not. I hope you the former. :)
+(I'm pretty sure that most listeners can hear the improvements of Piano 1. Try it.)
+
+ Almost of the parameter tunings are focused on the velocity expressions. 
+
+
+ Enjoy the More Tuned Chorium.
+
+
+ * Any suggestions or bug-reports to openwrld@kebi.com *
