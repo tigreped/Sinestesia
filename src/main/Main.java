@@ -23,7 +23,6 @@ public class Main {
 		// Inicializa o arquivo de log.
 		Base.initializeLog();
 
-		
 		// Inicializa as constantes:
 		Base.setConstantes(new Constantes(1600));
 		// Inicializa as escalas:

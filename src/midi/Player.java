@@ -17,10 +17,13 @@ public class Player extends Base implements Runnable {
 	private Sequence sequence;
 
 	private Sequencer sequencer;
+	
+	private int bpm;
 
 	private boolean paused = false;
 
-	public Player(Sequence s) {
+	public Player(Sequence s, int bpm) {
+		setBpm(bpm);
 		sequence = s;
 		sequencer = null;
 		try {
@@ -49,7 +52,7 @@ public class Player extends Base implements Runnable {
 			try {
 
 				sequencer.setSequence(sequence);
-
+				sequencer.setTempoInBPM(bpm);
 				// Imprime informações sobre a sequence:
 				out("Tipo de divisão:" + sequence.getDivisionType());
 				out("Duração:" + sequence.getTickLength() + " ticks");
@@ -136,5 +139,13 @@ public class Player extends Base implements Runnable {
 		if (sequencer != null && sequencer.isOpen()) {
 			sequencer.close();
 		}
+	}
+	
+	/**
+	 * Sets BPM for the song execution.
+	 * @param bpm
+	 */
+	public void setBpm(int bpm) {
+		this.bpm = bpm;
 	}
 }

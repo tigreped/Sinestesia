@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.sound.midi.Instrument;
+import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
+import javax.sound.midi.MidiDevice.Info;
+import javax.swing.JOptionPane;
 
 public class Constantes {
 
@@ -35,7 +38,7 @@ public class Constantes {
 
 	// 1/64 compasso | 1/4 tempo:
 	public int SEMIFUSA;
-	
+
 	// C2 no teclado MIDI:
 	public int C2 = 36;
 
@@ -324,21 +327,32 @@ public class Constantes {
 		listaNomeInstrumentos = new ArrayList<String>();
 		Instrument[] instrumentos = null;
 		try {
-			Synthesizer synth = null;
-			synth = MidiSystem.getSynthesizer();
+			Info[] midiInfo = MidiSystem.getMidiDeviceInfo();
+			for (int a = 0 ; a < midiInfo.length ; a++)
+				System.out.println(midiInfo[a]);
+			Synthesizer synth = MidiSystem.getSynthesizer();
 			synth.open();
-			Soundbank soundbank = synth.getDefaultSoundbank();
-			instrumentos = synth.getAvailableInstruments();
-			// Encerra o sintetizador:
-			synth.close();
+			System.out.println("Informações do dispositivo MIDI: "
+					+ synth.getDeviceInfo());
+			if (synth.isOpen()) {
+				Soundbank soundbank = synth.getDefaultSoundbank();
+
+				instrumentos = synth.getAvailableInstruments();
+				// Encerra o sintetizador:
+				synth.close();
+			} else
+				JOptionPane.showMessageDialog(null,
+						"Erro. Synthesizer não abriu.");
 		} catch (MidiUnavailableException m) {
 			m.printStackTrace();
 		}
 
-		for (int i = 0; i < instrumentos.length; i++)
-			listaNomeInstrumentos.add(instrumentos[i].getName());
+		if (instrumentos != null) {
+			for (int i = 0; i < instrumentos.length; i++)
+				listaNomeInstrumentos.add(instrumentos[i].getName());
+		}
 	}
-	
+
 	public ArrayList<String> getListaNomeInstrumentos() {
 		return listaNomeInstrumentos;
 	}

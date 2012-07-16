@@ -39,7 +39,8 @@ public class Visual extends Base {
 
 	// Variáveis globais:
 	private Player player;
-	private Sequence sequence;
+	private Sequence sequence = null;
+	private int ppq;
 	private JFrame frame;
 	private JDesktopPane desktopPane;
 	private MeuFrameInterno meuFrameInterno;
@@ -56,8 +57,7 @@ public class Visual extends Base {
 	 * Create the application.
 	 */
 	public Visual(int ppq) {
-		// Cria e inicializa uma sequence com um dado tempo:
-		sequence = MidiManager.inicializaSequence(ppq);
+		this.ppq = ppq;
 		initialize();
 		frame.setVisible(true);
 		paused = false;
@@ -98,9 +98,7 @@ public class Visual extends Base {
 
 		list_1 = new JList();
 		list_1.setBackground(Color.WHITE);
-		list_1
-				.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0,
-						0)));
+		list_1.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
 		scrollPane_1.setViewportView(list_1);
 
 		JLabel lblNewLabel = new JLabel("Lista de instrumentos:");
@@ -137,22 +135,18 @@ public class Visual extends Base {
 		lblEscala.setBounds(346, 276, 70, 15);
 		desktopPane.add(lblEscala);
 
+		// Escalas:
 		comboBox_1 = new JComboBox();
 		comboBox_1.setBounds(346, 303, 230, 24);
 		desktopPane.add(comboBox_1);
 		comboBox_1.addItem("Atônica");
 		comboBox_1.addItem("Jônio (Natural maior)");
-		// comboBox_1.addItem("Dórico");
-		// comboBox_1.addItem("Frígio");
-		// comboBox_1.addItem("Lídio");
-		// comboBox_1.addItem("Mixolídio");
 		comboBox_1.addItem("Eólio (Natural menor)");
-		// comboBox_1.addItem("Lócrio");
 		comboBox_1.addItem("Menor Harmônica");
 		comboBox_1.addItem("Pentatônica Maior");
 
 		JButton btnConverter = converter();
-		btnConverter.setBounds(463, 431, 113, 25);
+		btnConverter.setBounds(405, 415, 113, 25);
 		desktopPane.add(btnConverter);
 
 		JLabel lblNewLabel_2 = new JLabel("Tom:");
@@ -184,47 +178,53 @@ public class Visual extends Base {
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (btnPlay.isEnabled()) {
-					// Executa do início:
-					if (stoped && !paused && !playing) {
-						stoped = false;
-						playing = true;
-						try {
-
-							player = new Player(sequence);
-							player.run();
-							btnPlay.setText("Pause");
-
-						} catch (NumberFormatException n) {
-							JOptionPane
-									.showMessageDialog(null,
-											"O campo velocidade(bpm) deve conter números inteiros entre 1 e 250");
-						}
-					}
-					// Resume:
-					else if (!stoped && !playing && paused) {
-						if (player != null) {
+					int bpm = getBpm();
+					if (bpm != -1) {
+						// Executa do início:
+						if (stoped && !paused && !playing) {
+							stoped = false;
 							playing = true;
-							paused = false;
-							btnPlay.setText("Pause");
-							// Pega o novo valor em BPM:
-							player.resume();
+							try {
+								player = new Player(sequence, bpm);
+								player.run();
+								btnPlay.setText("Pause");
+
+							} catch (NumberFormatException n) {
+								JOptionPane
+										.showMessageDialog(null,
+												"O campo velocidade(bpm) deve conter números inteiros entre 1 e 250");
+							}
 						}
-					}
-					// Pause:
-					else if (!stoped && playing && !paused) {
-						if (player != null) {
-							paused = true;
-							playing = false;
-							btnPlay.setText("Play");
-							player.pause();
+						// Resume:
+						else if (!stoped && !playing && paused) {
+							if (player != null) {
+								playing = true;
+								paused = false;
+								btnPlay.setText("Pause");
+								// Pega o novo valor em BPM:
+								player.setBpm(bpm);
+								player.resume();
+							}
 						}
-					}
+						// Pause:
+						else if (!stoped && playing && !paused) {
+							if (player != null) {
+								paused = true;
+								playing = false;
+								btnPlay.setText("Play");
+								player.pause();
+							}
+						}
+					} //end if (bpm != -1)
+					else
+						javax.swing.JOptionPane.showMessageDialog(frame,
+								"Por favor, insira valores entre 0 e 150 para o BPM!");
 				}
 			}
 		});
 
 		btnPlay.setEnabled(false);
-		btnPlay.setBounds(204, 544, 90, 25);
+		btnPlay.setBounds(350, 530, 90, 25);
 		desktopPane.add(btnPlay);
 
 		btnStop = new JButton("Stop");
@@ -237,13 +237,13 @@ public class Visual extends Base {
 						playing = false;
 						btnPlay.setText("Play");
 						player.stop();
-					}	
+					}
 				}
 			}
 		});
 
 		btnStop.setEnabled(false);
-		btnStop.setBounds(306, 544, 90, 25);
+		btnStop.setBounds(450, 530, 90, 25);
 		desktopPane.add(btnStop);
 
 		JLabel lblImagem = new JLabel("Imagem:");
@@ -253,14 +253,14 @@ public class Visual extends Base {
 		JSeparator separator = new JSeparator();
 		separator.setBounds(24, 475, 552, 8);
 		desktopPane.add(separator);
-		
-		JLabel lblNmeroDePulsos = new JLabel("Número de pulsos por semínima:");
-		lblNmeroDePulsos.setBounds(346, 402, 242, 15);
+
+		JLabel lblNmeroDePulsos = new JLabel("Batidas por minuto(BPM):");
+		lblNmeroDePulsos.setBounds(50, 535, 242, 15);
 		desktopPane.add(lblNmeroDePulsos);
-		
+
 		textField_1 = new JTextField();
-		textField_1.setText("1600");
-		textField_1.setBounds(346, 431, 100, 25);
+		textField_1.setText("100");
+		textField_1.setBounds(250, 530, 90, 25);
 		desktopPane.add(textField_1);
 		textField_1.setColumns(10);
 
@@ -278,14 +278,17 @@ public class Visual extends Base {
 		JMenuItem mntmExportarMidi = new JMenuItem("Exportar MIDI");
 		mntmExportarMidi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				
+
 				JFileChooser fc = new JFileChooser();
 				fc.setApproveButtonText("Salvar");
 				fc.setDialogTitle("Exportar MIDI");
 				fc.setDialogType(JFileChooser.SAVE_DIALOG);
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				fc.setAcceptAllFileFilterUsed(false);
-				String filepath = javax.swing.JOptionPane.showInputDialog("Escolha o caminho e o nome do arquivo que deseja salvar", null);				
+				String filepath = javax.swing.JOptionPane
+						.showInputDialog(
+								"Escolha o caminho e o nome do arquivo que deseja salvar",
+								null);
 				try {
 					MidiManager.salvar(sequence, filepath);
 				} catch (Exception e) {
@@ -400,6 +403,8 @@ public class Visual extends Base {
 					int mapeamentoRGB = comboBox.getSelectedIndex();
 					int escala = comboBox_1.getSelectedIndex();
 					int tom = comboBox_2.getSelectedIndex();
+					// Reinicializa uma sequence com o dado tempo:
+					sequence = MidiManager.inicializaSequence(ppq);
 					Mapeamento.zero(raster, sequence, instrumentosSelecionados,
 							mapeamentoRGB, escala, tom);
 					btnPlay.setEnabled(true);
@@ -428,10 +433,10 @@ public class Visual extends Base {
 							return true;
 						else
 							return f.getName().toLowerCase().endsWith(".png")
-									|| f.getName().toLowerCase().endsWith(
-											".bmp")
-									|| f.getName().toLowerCase().endsWith(
-											".jpg");
+									|| f.getName().toLowerCase()
+											.endsWith(".bmp")
+									|| f.getName().toLowerCase()
+											.endsWith(".jpg");
 					}
 
 					public String getDescription() {
@@ -466,5 +471,18 @@ public class Visual extends Base {
 		for (int i = 0; i < itensSelecionados.length; i++)
 			instrumentosSelecionados.add(constantes.getListaNomeInstrumentos()
 					.indexOf((String) itensSelecionados[i]));
+	}
+
+	private int getBpm() {
+		String txt = textField_1.getText();
+		int bpm = 100;
+		if (txt.equalsIgnoreCase("")) {
+			bpm = -1; // erro
+		} else {
+			bpm = Integer.parseInt(txt);
+			if (bpm < 0 || bpm > 150)
+				bpm = -1; // erro
+		}
+		return bpm;
 	}
 }

@@ -20,7 +20,6 @@ public class Base {
 	public static PrintStream logFile;
 	
 	public static void out(String msg){
-		System.out.println(msg);
 		try {
 		log(msg);
 		}

@@ -37,7 +37,7 @@ public class PlayerTest {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		Player player = new Player(sequence);
-		player.run();
+/*		Player player = new Player(sequence);
+		player.run(); */
 	}
 }
