@@ -180,6 +180,8 @@ public class Visual extends Base {
 				if (btnPlay.isEnabled()) {
 					int bpm = getBpm();
 					if (bpm != -1) {
+						// Habilita o botão stop;
+						btnStop.setEnabled(true);
 						// Executa do início:
 						if (stoped && !paused && !playing) {
 							stoped = false;
@@ -198,12 +200,19 @@ public class Visual extends Base {
 						// Resume:
 						else if (!stoped && !playing && paused) {
 							if (player != null) {
-								playing = true;
-								paused = false;
-								btnPlay.setText("Pause");
 								// Pega o novo valor em BPM:
-								player.setBpm(bpm);
-								player.resume();
+								bpm = getBpm();
+								if (bpm != -1) {
+									player.setBpm(bpm);
+									playing = true;
+									paused = false;
+									btnPlay.setText("Pause");
+									player.resume();
+								}
+								else {
+									javax.swing.JOptionPane.showMessageDialog(frame,
+											"Por favor, insira valores entre 1 e 150 para o BPM!");
+								}
 							}
 						}
 						// Pause:
@@ -237,6 +246,7 @@ public class Visual extends Base {
 						playing = false;
 						btnPlay.setText("Play");
 						player.stop();
+						btnStop.setEnabled(false);
 					}
 				}
 			}
@@ -405,10 +415,9 @@ public class Visual extends Base {
 					int tom = comboBox_2.getSelectedIndex();
 					// Reinicializa uma sequence com o dado tempo:
 					sequence = MidiManager.inicializaSequence(ppq);
-					Mapeamento.zero(raster, sequence, instrumentosSelecionados,
+					Mapeamento.um(raster, sequence, instrumentosSelecionados,
 							mapeamentoRGB, escala, tom);
 					btnPlay.setEnabled(true);
-					btnStop.setEnabled(true);
 				}
 			}
 		});

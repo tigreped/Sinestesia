@@ -182,6 +182,132 @@ public class Mapeamento extends Base {
 			}
 		}
 	}
+	
+	public static void um(Raster raster, Sequence sequence,
+			ArrayList<Integer> instrumentos, int combina, int escala, int tom) {
+
+		// Largura da imagem:
+		int numeroDeColunas = raster.getWidth();
+
+		// Altura da imagem:
+		int numeroDeLinhas = raster.getHeight();
+
+		// Quantidade de faixas simultaneas desejadas pelo usuário:
+		int numeroDeFaixas = instrumentos.size();
+
+		// Variavel temporaria que recebe a informacao do pixel:
+		int[] rgb = new int[3];
+
+		// Cria e inicializa o a lista das notas de cada faixa da música: 
+		ArrayList<ArrayList<Nota>> notas = new ArrayList<ArrayList<Nota>>();
+		for (int a = 0 ; a < numeroDeFaixas ; a++)
+			notas.add(new ArrayList<Nota>());
+		
+		int faixaAtual = 0;
+
+		// Laço que varre cada pixel da imagem e garante que nao tente varrer
+		// fora da area da imagem, mesmo que para isso seja necessario ignorar
+		// alguns valores:
+		for (int i = 0; i < numeroDeLinhas; i++) {
+			if (faixaAtual >= numeroDeFaixas)
+				faixaAtual = 0;
+			ArrayList<Nota> notasFaixa = notas.get(faixaAtual);
+			for (int j = 0; j < numeroDeColunas; j++) {
+				Nota nota = new Nota();
+				raster.getPixel(j, i, rgb);
+				getRGBValues(combina, nota, rgb);
+
+				int tecla = nota.getTecla();
+				long duracao = nota.getDuracao();
+				int intensidade = nota.getIntensidade();
+
+				// Normaliza os valores da tecla buscando a nota de uma escala
+				// especifica:
+				switch(escala) {
+					case 0:
+						nota.setTecla(escalas.getNotaAtonica(tecla, tom));
+						break;
+					case 1:
+						nota.setTecla(escalas.getNotaNaturalMaior(tecla, tom));
+						break;
+					case 2:
+						nota.setTecla(escalas.getNotaNaturalMenor(tecla, tom));
+						break;
+					case 3:
+						nota.setTecla(escalas.getNotaMenorHarmonica(tecla, tom));
+						break;
+					case 4:
+						nota.setTecla(escalas.getNotaPentatonicaMaior(tecla, tom));
+						break;
+				}		
+				// Normaliza os valores da duracao buscando nas constantes:
+				nota.setDuracao(constantes
+						.getDuracao(normalizaDuracao(duracao)));
+				// Normaliza a intensidade:
+				nota.setIntensidade(normalizaIntensidade(intensidade));
+				// Adiciona nota a lista de notas mapeadas.
+				notasFaixa.add(nota);
+			}
+			++faixaAtual;
+		}
+
+		Track track = sequence.createTrack();
+
+		// Para cada faixa:
+		for (int canal = 1; canal <= numeroDeFaixas; canal++) {
+
+			long inicio = 0;
+			
+			ArrayList<Nota> notasFaixa = notas.get(canal-1);
+
+			// Configura o instrumento da faixa(default == 0/piano):
+			int instrumento = instrumentos.get(canal - 1);
+
+			/**
+			 * TODO Não é um player que é responsável por isso, é um
+			 * MidiManager. mandar a track para o MidiManager logo no início,
+			 * para evitar ter que ficar passando como parâmetro.
+			 */
+			MidiManager.changeProgram(track, canal, instrumento);
+			
+			int contadorNotas = 0;
+
+			// Configura as notas desta faixa:
+			for (int n = 0; n < notasFaixa.size(); n++) {
+
+				Nota nota = notasFaixa.get(contadorNotas++);
+
+				nota.setCanal(canal);
+
+				// Configura o início da nota para a duração da anterior.
+				nota.setInicio(inicio);
+
+				// NoteON:
+				ShortMessage sm = new ShortMessage();
+				try {
+					sm.setMessage(constantes.mapeamentoCanalNoteOn.get(nota
+							.getCanal()), nota.getTecla(), nota
+							.getIntensidade());
+				} catch (InvalidMidiDataException i) {
+					i.printStackTrace();
+				}
+				track.add(new MidiEvent(sm, inicio));
+
+				inicio += nota.getDuracao();
+
+				// NoteOFF:
+				sm = new ShortMessage();
+				try {
+					sm.setMessage(constantes.mapeamentoCanalNoteOff.get(nota
+							.getCanal()), nota.getTecla(), nota
+							.getIntensidade());
+				} catch (InvalidMidiDataException e) {
+					e.printStackTrace();
+				}
+				track.add(new MidiEvent(sm, inicio));
+			}
+		}
+	}
 
 	/*
 	 * Metodos de normalizacao fazem a conversso proporcional dos valores RGB

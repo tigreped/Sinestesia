@@ -1,5 +1,6 @@
 package midi;
 
+import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
@@ -12,7 +13,7 @@ import javax.sound.midi.Track;
 
 import util.Base;
 
-public class Player extends Base implements Runnable {
+public class Player extends Base implements Runnable, ControllerEventListener{
 
 	private Sequence sequence;
 
@@ -23,12 +24,15 @@ public class Player extends Base implements Runnable {
 	private boolean paused = false;
 
 	public Player(Sequence s, int bpm) {
-		setBpm(bpm);
 		sequence = s;
 		sequencer = null;
 		try {
 			sequencer = MidiSystem.getSequencer();
 			sequencer.open();
+			int[] controller = new int[1];
+			controller[0] = 252;
+			sequencer.addControllerEventListener(this, controller);
+			setBpm(bpm);
 		} catch (MidiUnavailableException e) {
 			System.out.println("Sequencer não inicializado.");
 			e.printStackTrace();
@@ -40,6 +44,15 @@ public class Player extends Base implements Runnable {
 		//System.out.println(Thread.currentThread().getName());
 	}
 
+	@Override
+	public void controlChange(ShortMessage arg0) {
+		// Waits for the sequencer to reach the end of the song:
+		if (arg0.getData1() == ShortMessage.STOP) {
+			stop();
+			System.out.println("Acabou a execução!");
+		}	
+	}
+	
 	/**
 	 * Executa a sequence e encerra o sequencer apos a execucao.
 	 * 
@@ -50,7 +63,6 @@ public class Player extends Base implements Runnable {
 		if (sequencer != null) {
 			// Executa a musica da sequence:
 			try {
-
 				sequencer.setSequence(sequence);
 				sequencer.setTempoInBPM(bpm);
 				// Imprime informações sobre a sequence:
@@ -80,6 +92,7 @@ public class Player extends Base implements Runnable {
 					Interpretador.main(t);
 				}
 				sequencer.start();
+					
 			} catch (InvalidMidiDataException e) {
 				e.printStackTrace();
 			}
@@ -114,7 +127,6 @@ public class Player extends Base implements Runnable {
 			paused = false;
 			out("Tempo factor:" + sequencer.getTempoFactor());
 			out("Tempo in BPM:" + sequencer.getTempoInBPM());
-			// changeTempo(tempoInBPM);
 			sequencer.start();
 		}
 	}
@@ -147,5 +159,6 @@ public class Player extends Base implements Runnable {
 	 */
 	public void setBpm(int bpm) {
 		this.bpm = bpm;
+		sequencer.setTempoInBPM(bpm);
 	}
 }
