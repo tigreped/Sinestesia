@@ -19,6 +19,7 @@ public class Player extends Base implements Runnable, ControllerEventListener{
 
 	private Sequencer sequencer;
 	
+	
 	private int bpm;
 
 	private boolean paused = false;
@@ -160,5 +161,12 @@ public class Player extends Base implements Runnable, ControllerEventListener{
 	public void setBpm(int bpm) {
 		this.bpm = bpm;
 		sequencer.setTempoInBPM(bpm);
+	}
+	
+	public long[] getCurrentTime() {
+		long times[] = new long[2];
+		times[0] = sequencer.getMicrosecondPosition();
+		times[1] = sequencer.getMicrosecondLength();
+		return times;
 	}
 }

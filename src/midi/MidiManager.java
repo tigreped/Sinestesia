@@ -196,6 +196,9 @@ public class MidiManager extends Base {
 		 */
 		public static void salvar(Sequence sequence, String filename)
 				throws Exception {
+			File mid = new File("mid");
+			if (!mid.exists())
+				mid.mkdir();
 			File outputFile = new File("mid/" + filename + ".mid");
 			try {
 				int nTracks = sequence.getTracks().length;
@@ -205,7 +208,7 @@ public class MidiManager extends Base {
 					MidiSystem.write(sequence, 1, outputFile);
 				else
 					throw new Exception(
-							"Erro. Impossivel salvar. Numero de tracks na sequencia invalido: "
+							"Error. Impossible to save. Invalid amount of sequence tracks!"
 									+ nTracks);
 			} catch (IOException e) {
 				e.printStackTrace();

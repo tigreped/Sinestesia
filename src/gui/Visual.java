@@ -11,7 +11,6 @@ import java.util.ArrayList;
 
 import javax.sound.midi.Sequence;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
@@ -24,6 +23,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.MatteBorder;
 import javax.swing.filechooser.FileFilter;
@@ -32,8 +33,7 @@ import map.Mapeamento;
 import midi.MidiManager;
 import midi.Player;
 import util.Base;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
+import util.Clock;
 
 public class Visual extends Base {
 
@@ -52,6 +52,7 @@ public class Visual extends Base {
 	private JButton btnPlay, btnStop;
 	private boolean paused, playing, stoped;
 	private JTextField textField_1;
+	//private Clock clock;
 
 	/**
 	 * Create the application.
@@ -101,13 +102,13 @@ public class Visual extends Base {
 		list_1.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
 		scrollPane_1.setViewportView(list_1);
 
-		JLabel lblNewLabel = new JLabel("Lista de instrumentos:");
+		JLabel lblNewLabel = new JLabel("List of instruments:");
 		lblNewLabel.setBounds(24, 10, 211, 15);
 		desktopPane.add(lblNewLabel);
 
-		JLabel lblNewLabel_1 = new JLabel("Instrumentos selecionados:");
+		JLabel lblNewLabel_1 = new JLabel("Selected instruments:");
 		lblNewLabel_1
-				.setToolTipText("Cada instrumento corresponderá a uma faixa da músixa.");
+				.setToolTipText("Each instrument corresponds to one music track.");
 		lblNewLabel_1.setBounds(24, 252, 211, 15);
 		desktopPane.add(lblNewLabel_1);
 
@@ -127,11 +128,11 @@ public class Visual extends Base {
 		comboBox.setBounds(346, 245, 230, 24);
 		desktopPane.add(comboBox);
 
-		JLabel lblCombinaorgb = new JLabel("[Nota] [Intensidade] [Duração]:");
+		JLabel lblCombinaorgb = new JLabel("[Note] [Intensity] [Duration]:");
 		lblCombinaorgb.setBounds(346, 220, 227, 15);
 		desktopPane.add(lblCombinaorgb);
 
-		JLabel lblEscala = new JLabel("Escala:");
+		JLabel lblEscala = new JLabel("Escale:");
 		lblEscala.setBounds(346, 276, 70, 15);
 		desktopPane.add(lblEscala);
 
@@ -139,34 +140,34 @@ public class Visual extends Base {
 		comboBox_1 = new JComboBox();
 		comboBox_1.setBounds(346, 303, 230, 24);
 		desktopPane.add(comboBox_1);
-		comboBox_1.addItem("Atônica");
-		comboBox_1.addItem("Jônio (Natural maior)");
-		comboBox_1.addItem("Eólio (Natural menor)");
-		comboBox_1.addItem("Menor Harmônica");
-		comboBox_1.addItem("Pentatônica Maior");
+		comboBox_1.addItem("Chromatic");
+		comboBox_1.addItem("Jonio (Natural major)");
+		comboBox_1.addItem("Eolio (Natural minor)");
+		comboBox_1.addItem("Minor Harmonic");
+		comboBox_1.addItem("Major Pentatonic");
 
 		JButton btnConverter = converter();
 		btnConverter.setBounds(405, 415, 113, 25);
 		desktopPane.add(btnConverter);
 
-		JLabel lblNewLabel_2 = new JLabel("Tom:");
+		JLabel lblNewLabel_2 = new JLabel("Key:");
 		lblNewLabel_2.setBounds(346, 339, 70, 15);
 		desktopPane.add(lblNewLabel_2);
 
 		// Tom:
 		comboBox_2 = new JComboBox();
-		comboBox_2.addItem("C (Dó)");
-		comboBox_2.addItem("C# (Dó sustenido)");
-		comboBox_2.addItem("D (Ré)");
-		comboBox_2.addItem("D# (Ré sustenido)");
-		comboBox_2.addItem("E (Mi)");
-		comboBox_2.addItem("F (Fá)");
-		comboBox_2.addItem("F# (Fá sustenido)");
-		comboBox_2.addItem("G (Sol)");
-		comboBox_2.addItem("G# (Sol sustenido)");
-		comboBox_2.addItem("A (Lá)");
-		comboBox_2.addItem("Bb (Si bemol)");
-		comboBox_2.addItem("B (Si)");
+		comboBox_2.addItem("C");
+		comboBox_2.addItem("C# / Db");
+		comboBox_2.addItem("D");
+		comboBox_2.addItem("D# / Eb");
+		comboBox_2.addItem("E / Fb");
+		comboBox_2.addItem("F / E#");
+		comboBox_2.addItem("F# / Gb");
+		comboBox_2.addItem("G");
+		comboBox_2.addItem("G# / Ab");
+		comboBox_2.addItem("A");
+		comboBox_2.addItem("A# / Bb");
+		comboBox_2.addItem("B / Cb");
 		comboBox_2.setBounds(346, 366, 230, 24);
 		desktopPane.add(comboBox_2);
 
@@ -175,8 +176,12 @@ public class Visual extends Base {
 		desktopPane.add(lblPlayer);
 
 		btnPlay = new JButton("Play");
+		// Play:
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				// Refresh every second
+				//clock = new Clock(1000);
+				// desktopPane.add(clock.getLabel());
 				if (btnPlay.isEnabled()) {
 					int bpm = getBpm();
 					if (bpm != -1) {
@@ -189,6 +194,7 @@ public class Visual extends Base {
 							try {
 								player = new Player(sequence, bpm);
 								player.run();
+								//clock.resume();
 								btnPlay.setText("Pause");
 
 							} catch (NumberFormatException n) {
@@ -207,11 +213,12 @@ public class Visual extends Base {
 									playing = true;
 									paused = false;
 									btnPlay.setText("Pause");
+									//clock.resume();
 									player.resume();
 								}
 								else {
 									javax.swing.JOptionPane.showMessageDialog(frame,
-											"Por favor, insira valores entre 1 e 150 para o BPM!");
+											"Please, insert BPM values between 0 and 150!");
 								}
 							}
 						}
@@ -222,12 +229,13 @@ public class Visual extends Base {
 								playing = false;
 								btnPlay.setText("Play");
 								player.pause();
+								//clock.pause();
 							}
 						}
 					} //end if (bpm != -1)
 					else
 						javax.swing.JOptionPane.showMessageDialog(frame,
-								"Por favor, insira valores entre 0 e 150 para o BPM!");
+								"Please, insert BPM values between 0 and 150!");
 				}
 			}
 		});
@@ -256,7 +264,7 @@ public class Visual extends Base {
 		btnStop.setBounds(450, 530, 90, 25);
 		desktopPane.add(btnStop);
 
-		JLabel lblImagem = new JLabel("Imagem:");
+		JLabel lblImagem = new JLabel("Image:");
 		lblImagem.setBounds(346, 10, 70, 15);
 		desktopPane.add(lblImagem);
 
@@ -264,7 +272,7 @@ public class Visual extends Base {
 		separator.setBounds(24, 475, 552, 8);
 		desktopPane.add(separator);
 
-		JLabel lblNmeroDePulsos = new JLabel("Batidas por minuto(BPM):");
+		JLabel lblNmeroDePulsos = new JLabel("Beats per minute(BPM):");
 		lblNmeroDePulsos.setBounds(50, 535, 242, 15);
 		desktopPane.add(lblNmeroDePulsos);
 
@@ -285,30 +293,40 @@ public class Visual extends Base {
 		JMenuItem mntmAbrirImagem = carregarImagem();
 		mnMenu.add(mntmAbrirImagem);
 
-		JMenuItem mntmExportarMidi = new JMenuItem("Exportar MIDI");
+		JMenuItem mntmExportarMidi = new JMenuItem("Export MIDI");
 		mntmExportarMidi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-
-				JFileChooser fc = new JFileChooser();
-				fc.setApproveButtonText("Salvar");
-				fc.setDialogTitle("Exportar MIDI");
-				fc.setDialogType(JFileChooser.SAVE_DIALOG);
-				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				fc.setAcceptAllFileFilterUsed(false);
-				String filepath = javax.swing.JOptionPane
-						.showInputDialog(
-								"Escolha o caminho e o nome do arquivo que deseja salvar",
-								null);
-				try {
-					MidiManager.salvar(sequence, filepath);
-				} catch (Exception e) {
-					e.printStackTrace();
+				if (sequence != null) {				
+					JFileChooser fc = new JFileChooser();
+					fc.setApproveButtonText("Save");
+					fc.setDialogTitle("Export MIDI");
+					fc.setDialogType(JFileChooser.SAVE_DIALOG);
+					fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					fc.setAcceptAllFileFilterUsed(false);
+					String filepath = javax.swing.JOptionPane
+							.showInputDialog(
+									"Enter filename of your desire",
+									null);
+					while (filepath.contains("/")) {
+						filepath = javax.swing.JOptionPane
+								.showInputDialog(
+										"No folders allowed. The file will be exported to a /mid subfolder. Choose the filename of your desire:",
+										null);					
+					}
+					try {
+						MidiManager.salvar(sequence, filepath);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			}
+				else
+					javax.swing.JOptionPane
+					.showMessageDialog(frame, "You must first set and convert an image before trying to export it.");
+			}	
 		});
 		mnMenu.add(mntmExportarMidi);
 
-		JMenuItem mntmSair = new JMenuItem("Sair");
+		JMenuItem mntmSair = new JMenuItem("Quit");
 		mntmSair.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.exit(0);
@@ -327,7 +345,7 @@ public class Visual extends Base {
 	}
 
 	private JButton adicionarInstrumentos() {
-		JButton btnAdicionar = new JButton("Adicionar");
+		JButton btnAdicionar = new JButton("Add");
 		btnAdicionar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				list_1.setSelectionInterval(0, list_1.getLastVisibleIndex());
@@ -346,7 +364,7 @@ public class Visual extends Base {
 	}
 
 	private JButton removerInstrumentos() {
-		JButton btnRemover = new JButton("Remover");
+		JButton btnRemover = new JButton("Remove");
 		btnRemover.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				// Separa os itens selecionados para remoção:
@@ -369,7 +387,7 @@ public class Visual extends Base {
 	}
 
 	private JButton converter() {
-		JButton btnConverter = new JButton("Converter");
+		JButton btnConverter = new JButton("Convert");
 		btnConverter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				BufferedImage imagem;
@@ -378,7 +396,7 @@ public class Visual extends Base {
 					imagem = meuFrameInterno.getPanel().getImagem();
 				} catch (NullPointerException e) {
 					JOptionPane.showMessageDialog(null,
-							"Não há nenhuma imagem selecionada!", "",
+							"There is no selected image!", "",
 							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -392,7 +410,7 @@ public class Visual extends Base {
 					JOptionPane
 							.showMessageDialog(
 									null,
-									"Escolha entre 1 a 9 instrumentos para realizar o mapeamento.",
+									"Pick from 1 to 9 instruments to begin the conversion.",
 									"", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -402,7 +420,7 @@ public class Visual extends Base {
 					JOptionPane
 							.showMessageDialog(
 									null,
-									"Instrumentos demais. Escolha até no máximo 9 instrumentos para realizar o mapeamento.",
+									"Too many instruments. Pick from 1 to 9 instruments to begin the conversion.",
 									"", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -425,13 +443,13 @@ public class Visual extends Base {
 	}
 
 	private JMenuItem carregarImagem() {
-		JMenuItem mntmAbrirImagem = new JMenuItem("Carregar imagem");
+		JMenuItem mntmAbrirImagem = new JMenuItem("Load image");
 		mntmAbrirImagem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				// exibe a nova janela interna
 				JFileChooser fc = new JFileChooser();
-				fc.setApproveButtonText("Abrir");
-				fc.setDialogTitle("Abrir imagem");
+				fc.setApproveButtonText("Open");
+				fc.setDialogTitle("Open image");
 				fc.setDialogType(JFileChooser.OPEN_DIALOG);
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				fc.setAcceptAllFileFilterUsed(false);
